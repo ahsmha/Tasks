@@ -1,4 +1,3 @@
-//go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/note_repository.go
 package repository
 
 import "ahsmha/notes/domain/model"
