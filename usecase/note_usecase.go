@@ -16,3 +16,25 @@ type NoteUsecase interface {
 type noteUsecase struct {
 	noteRepo repository.NoteRepository
 }
+
+func NewNoteUsecase(noteRepo repository.NoteRepository) NoteUsecase {
+	return &noteUsecase{
+		noteRepo: noteRepo,
+	}
+}
+
+func (usecase *noteUsecase) GetById(id int) (*model.Note, error) {
+	return nil, nil
+}
+
+func (usecase *noteUsecase) Create(note *model.Note) (int64, error) {
+	return 0, nil
+}
+
+func (usecase *noteUsecase) Update(note *model.Note) error {
+	return nil
+}
+
+func (usecase *noteUsecase) Delete(id int) error {
+	return nil
+}
