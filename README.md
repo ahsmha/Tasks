@@ -1,5 +1,5 @@
 # Notes Backend
-Backend of note application as part of an assignment for Accuknox.
+Backend of a note application
 
 ## Features
 - Basic CRUD functionality
