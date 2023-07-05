@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"ahsmha/notes/domain/model"
 	"ahsmha/notes/usecase"
 	"ahsmha/notes/util"
 	"net/http"
@@ -15,12 +16,39 @@ type AuthHandler struct {
 
 type UserParam struct {
 	Name     string `json:"name"`
+	Email    string `json:"email,omitempty"`
 	Password string `json:"password"`
 }
 
 func NewAuthHandler(userUsecase usecase.UserUsecase) AuthHandler {
 	return AuthHandler{
 		userUsecase: userUsecase,
+	}
+}
+
+func (authHandler *AuthHandler) CreateUser() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var user model.User
+		if err := c.Bind(&user); err != nil {
+			c.Logger().Error(err.Error())
+
+			return c.JSON(http.StatusBadRequest, err)
+		}
+		// generate pwd hash
+		err := user.SetPassword(string(user.Password))
+		if err != nil {
+			c.Logger().Error(err.Error())
+			return c.JSON(http.StatusUnprocessableEntity, err)
+		}
+		// save it in db
+		err = authHandler.userUsecase.Create(&user)
+		if err != nil {
+			c.Logger().Error(err.Error())
+			return c.JSON(http.StatusBadRequest, err)
+		}
+		return c.JSON(http.StatusOK, echo.Map{
+			"message": "signup success",
+		})
 	}
 }
 

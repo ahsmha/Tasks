@@ -4,6 +4,7 @@ import (
 	"ahsmha/notes/domain/model"
 	"ahsmha/notes/domain/repository"
 	"database/sql"
+	"time"
 )
 
 func UserCreate(user *model.User) (sql.Result, error) {
@@ -23,6 +24,14 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 }
 
 func (userRepository UserRepository) Create(user *model.User) error {
+	query := `INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?);`
+
+	now := time.Now()
+
+	if _, err := userRepository.SqlHandler.Conn.Exec(query, user.Name, user.Password, now, now); err != nil {
+		return err
+	}
+
 	return nil
 }
 

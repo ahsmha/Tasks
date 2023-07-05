@@ -26,5 +26,10 @@ func (usecase *userUsecase) GetByName(name string) (user *model.User, err error)
 }
 
 func (usecase *userUsecase) Create(user *model.User) error {
+	err := usecase.userRepo.Create(user)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
