@@ -28,12 +28,14 @@ func NewAuthHandler(userUsecase usecase.UserUsecase) AuthHandler {
 
 func (authHandler *AuthHandler) CreateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var user model.User
-		if err := c.Bind(&user); err != nil {
+		var userParams UserParam
+		if err := c.Bind(&userParams); err != nil {
 			c.Logger().Error(err.Error())
 
 			return c.JSON(http.StatusBadRequest, err)
 		}
+		var user model.User
+		user.Name = userParams.Name
 		// generate pwd hash
 		err := user.SetPassword(string(user.Password))
 		if err != nil {
