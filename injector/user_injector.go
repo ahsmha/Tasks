@@ -7,7 +7,7 @@ import (
 	"ahsmha/notes/usecase"
 )
 
-// inject auth handler first
+// inject auth handler
 func InjectAuthHandler() handler.AuthHandler {
 	return handler.NewAuthHandler(InjectUserUsecase())
 }
