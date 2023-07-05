@@ -22,7 +22,12 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 }
 
 func (usecase *userUsecase) GetByName(name string) (user *model.User, err error) {
-	return nil, nil
+	user, err = usecase.userRepo.GetByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, err
 }
 
 func (usecase *userUsecase) Create(user *model.User) error {

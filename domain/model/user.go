@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	Id       uint      `json:"id" db:"id"`
+	Id       uint32    `json:"id" db:"id"`
 	Name     string    `json:"name" db:"name"`
 	Password []byte    `json:"password"`
 	Created  time.Time `json:"created" db:"created"`

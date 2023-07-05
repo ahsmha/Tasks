@@ -36,5 +36,12 @@ func (userRepository UserRepository) Create(user *model.User) error {
 }
 
 func (userRepository UserRepository) GetByName(name string) (*model.User, error) {
-	return nil, nil
+	query := `SELECT * FROM users WHERE name = ?;`
+
+	var user model.User
+	if err := userRepository.SqlHandler.Conn.Get(&user, query, name); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
