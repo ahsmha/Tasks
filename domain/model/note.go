@@ -7,12 +7,12 @@ import (
 )
 
 type Note struct {
-	ID      uint32    `db:"id" json:"id"`
-	Title   string    `db:"title" validate:"required,max=50" json:"title"`
-	Body    string    `db:"body" validate:"required" json:"body"`
-	UserId  uint32    `db:"user_id" json:"uid"`
-	Created time.Time `db:"created" json:"created"`
-	Updated time.Time `db:"updated" json:"updated"`
+	ID      uint32    `json:"id"`
+	Title   string    `validate:"required,max=50" json:"title"`
+	Body    string    `validate:"required" json:"body"`
+	Email   string    `json:"email"`
+	Created time.Time `json:"created"`
+	Updated time.Time `json:"updated"`
 }
 
 func (a *Note) ValidationErrors(err error) []string {

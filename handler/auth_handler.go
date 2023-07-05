@@ -15,8 +15,8 @@ type AuthHandler struct {
 }
 
 type UserParam struct {
-	Name     string `json:"name"`
-	Email    string `json:"email,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -36,8 +36,9 @@ func (authHandler *AuthHandler) CreateUser() echo.HandlerFunc {
 		}
 		var user model.User
 		user.Name = userParams.Name
+		user.Email = userParams.Email
 		// generate pwd hash
-		err := user.SetPassword(string(user.Password))
+		err := user.SetPassword(string(userParams.Password))
 		if err != nil {
 			c.Logger().Error(err.Error())
 			return c.JSON(http.StatusUnprocessableEntity, err)
@@ -63,16 +64,21 @@ func (authHandler *AuthHandler) Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, err)
 		}
 
-		user, err := authHandler.userUsecase.GetByName(userParam.Name)
+		user, err := authHandler.userUsecase.GetByEmail(userParam.Email)
 		if err != nil {
 			c.Logger().Error(err.Error())
 
 			return c.JSON(http.StatusBadRequest, err)
 		}
 
-		_ = user.ComparePassword(userParam.Password)
+		err = user.ComparePassword(userParam.Password)
+		if err != nil {
+			c.Logger().Error(err.Error())
 
-		token, err := util.GenerateJwtToken(user.Name)
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+
+		token, err := util.GenerateJwtToken(user.Email)
 		if err != nil {
 			c.Logger().Error(err.Error())
 

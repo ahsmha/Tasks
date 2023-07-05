@@ -6,10 +6,10 @@ import (
 )
 
 type NoteUsecase interface {
-	GetAllNotesByUser(id int) (note *model.Note, err error)
+	GetAllNotesByEmail(email string) (notes *[]model.Note, err error)
 	Create(note *model.Note) (int64, error)
 	Update(note *model.Note) error
-	Delete(id int) error
+	Delete(id int, email string) error
 }
 
 // Since the repository is only referenced from the usecase, create a lowercase struct
@@ -23,13 +23,13 @@ func NewNoteUsecase(noteRepo repository.NoteRepository) NoteUsecase {
 	}
 }
 
-func (usecase *noteUsecase) GetAllNotesByUser(id int) (note *model.Note, err error) {
-	note, err = usecase.noteRepo.GetAllNotesByUser(id)
+func (usecase *noteUsecase) GetAllNotesByEmail(email string) (notes *[]model.Note, err error) {
+	notes, err = usecase.noteRepo.GetAllNotesByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 
-	return note, err
+	return notes, err
 }
 func (usecase *noteUsecase) Create(note *model.Note) (int64, error) {
 	id, err := usecase.noteRepo.Create(note)
@@ -44,8 +44,8 @@ func (usecase *noteUsecase) Update(note *model.Note) error {
 	return nil
 }
 
-func (usecase *noteUsecase) Delete(id int) error {
-	err := usecase.noteRepo.Delete(id)
+func (usecase *noteUsecase) Delete(id int, email string) error {
+	err := usecase.noteRepo.Delete(id, email)
 	if err != nil {
 		return err
 	}

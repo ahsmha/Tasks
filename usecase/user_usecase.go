@@ -6,7 +6,7 @@ import (
 )
 
 type UserUsecase interface {
-	GetByName(name string) (user *model.User, err error)
+	GetByEmail(email string) (user *model.User, err error)
 	Create(user *model.User) error
 }
 
@@ -21,8 +21,8 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 	}
 }
 
-func (usecase *userUsecase) GetByName(name string) (user *model.User, err error) {
-	user, err = usecase.userRepo.GetByName(name)
+func (usecase *userUsecase) GetByEmail(email string) (user *model.User, err error) {
+	user, err = usecase.userRepo.GetByEmail(email)
 	if err != nil {
 		return nil, err
 	}

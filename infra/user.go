@@ -11,7 +11,7 @@ func UserCreate(user *model.User) (sql.Result, error) {
 	return nil, nil
 }
 
-func UserGetByName(name string) (*model.User, error) {
+func UserGetByEmail(name string) (*model.User, error) {
 	return nil, nil
 }
 
@@ -24,22 +24,22 @@ func NewUserRepository(sqlHandler SqlHandler) repository.UserRepository {
 }
 
 func (userRepository UserRepository) Create(user *model.User) error {
-	query := `INSERT INTO users (name, password, created, updated) VALUES (?, ?, ?, ?);`
+	query := `INSERT INTO users (name, password, email, created, updated) VALUES (?, ?, ?, ?, ?);`
 
 	now := time.Now()
 
-	if _, err := userRepository.SqlHandler.Conn.Exec(query, user.Name, user.Password, now, now); err != nil {
+	if _, err := userRepository.SqlHandler.Conn.Exec(query, user.Name, user.Password, user.Email, now, now); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (userRepository UserRepository) GetByName(name string) (*model.User, error) {
-	query := `SELECT * FROM users WHERE name = ?;`
+func (userRepository UserRepository) GetByEmail(email string) (*model.User, error) {
+	query := `SELECT * FROM users WHERE email = ?;`
 
 	var user model.User
-	if err := userRepository.SqlHandler.Conn.Get(&user, query, name); err != nil {
+	if err := userRepository.SqlHandler.Conn.Get(&user, query, email); err != nil {
 		return nil, err
 	}
 

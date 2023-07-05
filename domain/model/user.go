@@ -7,11 +7,12 @@ import (
 )
 
 type User struct {
-	Id       uint32    `json:"id" db:"id"`
-	Name     string    `json:"name" db:"name"`
+	Id       uint32    `json:"id"`
+	Name     string    `json:"name"`
 	Password []byte    `json:"password"`
-	Created  time.Time `json:"created" db:"created"`
-	Updated  time.Time `json:"updated" db:"updated"`
+	Email    string    `json:"email"`
+	Created  time.Time `json:"created"`
+	Updated  time.Time `json:"updated"`
 }
 
 func (user *User) SetPassword(password string) error {

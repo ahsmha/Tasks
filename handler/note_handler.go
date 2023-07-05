@@ -3,10 +3,13 @@ package handler
 import (
 	"ahsmha/notes/domain/model"
 	"ahsmha/notes/usecase"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,18 +23,66 @@ func NewNoteHandler(noteUsecase usecase.NoteUsecase) NoteHandler {
 	}
 }
 
+type NoteRequest struct {
+	Note      model.Note `json:"note,omitempty"`
+	SessionId string     `json:"sid"`
+}
+
+type AllNotesOutput struct {
+	Notes   []model.Note `json:"notes"`
+	Message string       `json:"message"`
+}
+
 func (handler *NoteHandler) Show() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("noteID"))
-		note, err := handler.noteUsecase.GetAllNotesByUser(id)
+		var sid NoteRequest
+		var out AllNotesOutput
+		if err := c.Bind(&sid); err != nil {
+			c.Logger().Error(err.Error())
+
+			out.Message = "request format is invalid"
+			return c.JSON(http.StatusBadRequest, out)
+		}
+		token, err := handler.parseJwt(sid.SessionId)
+		if err != nil {
+			c.Logger().Error(err.Error())
+
+			out.Message = err.Error()
+			return c.JSON(http.StatusUnprocessableEntity, out)
+		}
+		claims := token.Claims.(jwt.MapClaims)
+		email := claims["iss"].(string)
+
+		notes, err := handler.noteUsecase.GetAllNotesByEmail(email)
 		if err != nil {
 			c.Logger().Error(err.Error())
 
 			return c.JSON(http.StatusNoContent, err)
 		}
 
-		return c.JSON(http.StatusOK, note)
+		return c.JSON(http.StatusOK, echo.Map{
+			"notes": *notes,
+		})
 	}
+}
+
+func (handler *NoteHandler) parseJwt(tokenString string) (*jwt.Token, error) {
+	key := []byte(os.Getenv("JWT_SECRET_KEY"))
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return key, nil
+	})
+	if err != nil {
+		message := "JWT parsing failed"
+		fmt.Println(message, err)
+
+		return nil, err
+	}
+	if token.Claims.Valid() != nil {
+		fmt.Println("Invalid JWT token:", token.Claims.Valid())
+		return nil, errors.New("Invalid JWT token")
+	}
+	return token, nil
 }
 
 type NoteOutput struct {
@@ -43,7 +94,7 @@ type NoteOutput struct {
 func (handler *NoteHandler) Create() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var (
-			note model.Note
+			note NoteRequest
 			out  NoteOutput
 		)
 
@@ -54,20 +105,21 @@ func (handler *NoteHandler) Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, out)
 		}
 
-		if err := c.Validate(&note); err != nil {
-			c.Logger().Error(err.Error())
-
-			out.ValidationErrors = note.ValidationErrors(err)
-
-			out.Message = "request validation failed"
-			return c.JSON(http.StatusUnprocessableEntity, out)
-		}
-
-		id, err := handler.noteUsecase.Create(&note)
+		token, err := handler.parseJwt(note.SessionId)
 		if err != nil {
 			c.Logger().Error(err.Error())
 
-			return c.JSON(http.StatusInternalServerError, out)
+			return c.JSON(http.StatusUnprocessableEntity, err)
+		}
+
+		claims := token.Claims.(jwt.MapClaims)
+		note.Note.Email = claims["iss"].(string)
+
+		id, err := handler.noteUsecase.Create(&note.Note)
+		if err != nil {
+			c.Logger().Error(err.Error())
+
+			return c.JSON(http.StatusInternalServerError, err)
 		}
 
 		out.NoteId = id
@@ -81,13 +133,30 @@ func (handler *NoteHandler) Delete() echo.HandlerFunc {
 		// get note id from path parameter
 		// Since it is obtained as a string type, cast it to a numeric type using the strconv package
 		id, _ := strconv.Atoi(c.Param("noteID"))
-
-		if err := handler.noteUsecase.Delete(id); err != nil {
+		var sid NoteRequest
+		if err := c.Bind(&sid); err != nil {
 			c.Logger().Error(err.Error())
 
-			return c.JSON(http.StatusInternalServerError, "")
+			return c.JSON(http.StatusBadRequest, err)
 		}
 
-		return c.JSON(http.StatusOK, fmt.Sprintf("Note %d is deleted.", id))
+		token, err := handler.parseJwt(sid.SessionId)
+		if err != nil {
+			c.Logger().Error(err.Error())
+
+			return c.JSON(http.StatusUnprocessableEntity, err)
+		}
+		claims := token.Claims.(jwt.MapClaims)
+		email := claims["iss"].(string)
+		if err := handler.noteUsecase.Delete(id, email); err != nil {
+			c.Logger().Error(err.Error())
+
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+
+		return c.JSON(http.StatusOK, echo.Map{
+			"message": "Note deleted successfully",
+			"id":      id,
+		})
 	}
 }
