@@ -9,7 +9,7 @@ import (
 type User struct {
 	Id       uint      `json:"id" db:"id"`
 	Name     string    `json:"name" db:"name"`
-	Password []byte    `json:"-"`
+	Password []byte    `json:"password"`
 	Created  time.Time `json:"created" db:"created"`
 	Updated  time.Time `json:"updated" db:"updated"`
 }

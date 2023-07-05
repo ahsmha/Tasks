@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -9,6 +10,7 @@ import (
 	"ahsmha/notes/injector"
 
 	"github.com/brpaz/echozap"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -18,6 +20,11 @@ import (
 )
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
 	e := createMux()
 	setupRouting(e)
 
