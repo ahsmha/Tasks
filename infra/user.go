@@ -3,17 +3,8 @@ package infra
 import (
 	"ahsmha/notes/domain/model"
 	"ahsmha/notes/domain/repository"
-	"database/sql"
 	"time"
 )
-
-func UserCreate(user *model.User) (sql.Result, error) {
-	return nil, nil
-}
-
-func UserGetByEmail(name string) (*model.User, error) {
-	return nil, nil
-}
 
 type UserRepository struct {
 	SqlHandler
