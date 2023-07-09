@@ -47,7 +47,7 @@ func (handler *NoteHandler) Show() echo.HandlerFunc {
 		if err != nil {
 			c.Logger().Error(err.Error())
 
-			out.Message = err.Error()
+			out.Message = "invalid token"
 			return c.JSON(http.StatusUnprocessableEntity, out)
 		}
 		claims := token.Claims.(jwt.MapClaims)
@@ -86,9 +86,8 @@ func (handler *NoteHandler) parseJwt(tokenString string) (*jwt.Token, error) {
 }
 
 type NoteOutput struct {
-	NoteId           int64    `json:"id"`
-	Message          string   `json:"message"`
-	ValidationErrors []string `json:"errors"`
+	NoteId  int64  `json:"id"`
+	Message string `json:"message"`
 }
 
 func (handler *NoteHandler) Create() echo.HandlerFunc {
@@ -109,7 +108,10 @@ func (handler *NoteHandler) Create() echo.HandlerFunc {
 		if err != nil {
 			c.Logger().Error(err.Error())
 
-			return c.JSON(http.StatusUnprocessableEntity, err)
+			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+				"message": "invalid token",
+				"error":   err,
+			})
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
@@ -143,8 +145,10 @@ func (handler *NoteHandler) Delete() echo.HandlerFunc {
 		token, err := handler.parseJwt(sid.SessionId)
 		if err != nil {
 			c.Logger().Error(err.Error())
-
-			return c.JSON(http.StatusUnprocessableEntity, err)
+			return c.JSON(http.StatusUnprocessableEntity, echo.Map{
+				"message": "invalid token",
+				"error":   err,
+			})
 		}
 		claims := token.Claims.(jwt.MapClaims)
 		email := claims["iss"].(string)

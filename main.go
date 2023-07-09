@@ -16,7 +16,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 func main() {
@@ -27,8 +26,6 @@ func main() {
 
 	e := createMux()
 	setupRouting(e)
-
-	e.Validator = &handler.CustomValidator{Validator: validator.New()}
 
 	port := os.Getenv("PORT")
 	e.Logger.Fatal(e.Start(":" + port))
