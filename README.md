@@ -6,5 +6,5 @@ Backend of a note application
 - Authentication
 
 ## UML
-![uml](./uml.svg)
-<img src="./uml.svg">
+![uml](./uml.png)
+<img src="./uml.png">
