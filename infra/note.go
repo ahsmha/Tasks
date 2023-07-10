@@ -11,9 +11,6 @@ type NoteRepository struct {
 	SqlHandler
 }
 
-// Only guaranteed to return an interface of repository.NoteRepository
-// In other words, as long as there is an interface, it is possible to mock without using sqlHandler and depending on DB
-
 func NewNoteRepository(sqlHandler SqlHandler) repository.NoteRepository {
 	return &NoteRepository{
 		SqlHandler: sqlHandler,
