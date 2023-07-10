@@ -37,8 +37,18 @@ func (authHandler *AuthHandler) CreateUser() echo.HandlerFunc {
 		var user model.User
 		user.Name = userParams.Name
 		user.Email = userParams.Email
+		// check if such email already exists
+		exists, err := authHandler.userUsecase.GetByEmail(user.Email)
+		if exists != nil || err != nil {
+			c.Logger().Error(err.Error())
+
+			return c.JSON(http.StatusBadRequest, echo.Map{
+				"message": "user email already registered",
+				"error":   err,
+			})
+		}
 		// generate pwd hash
-		err := user.SetPassword(string(userParams.Password))
+		err = user.SetPassword(string(userParams.Password))
 		if err != nil {
 			c.Logger().Error(err.Error())
 			return c.JSON(http.StatusUnprocessableEntity, err)
