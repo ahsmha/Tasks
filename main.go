@@ -9,9 +9,7 @@ import (
 	"ahsmha/notes/handler"
 	"ahsmha/notes/injector"
 
-	"github.com/brpaz/echozap"
 	"github.com/joho/godotenv"
-	"go.uber.org/zap"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
@@ -48,9 +46,6 @@ func createMux() *echo.Echo {
 	}))
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
-	e.Use(middleware.Gzip())
-	zapLogger, _ := zap.NewProduction()
-	e.Use(echozap.ZapLogger(zapLogger))
 	e.Use(middleware.BodyDump(bodyDumpHandler))
 
 	return e
