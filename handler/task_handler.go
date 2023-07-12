@@ -116,6 +116,7 @@ func (handler *TaskHandler) Delete() echo.HandlerFunc {
 			"id":      id,
 		})
 	}
+
 }
 
 func (handler *TaskHandler) Update() echo.HandlerFunc {

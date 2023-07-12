@@ -54,9 +54,6 @@ func createMux() *echo.Echo {
 func setupRouting(e *echo.Echo) {
 	noteHandler := injector.InjectTaskHandler()
 	handler.InitTaskRouting(e, noteHandler)
-
-	// authHandler := injector.InjectAuthHandler()
-	// handler.InitAuthRouting(e, authHandler)
 }
 
 func bodyDumpHandler(c echo.Context, reqBody, resBody []byte) {
