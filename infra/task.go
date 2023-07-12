@@ -106,35 +106,29 @@ func (TaskRepository *TaskRepository) Update(Task *model.Task) error {
 	return nil
 }
 
-func (TaskRepository *TaskRepository) Create(Task *model.Task) (int64, error) {
+func (TaskRepository *TaskRepository) Create(Task *model.Task, Id int) error {
 	now := time.Now()
 
 	Task.Created = now
 	Task.Updated = now
 
-	query := `INSERT INTO Tasks (title, body, email, created, updated)
-	VALUES (:title, :body, :email, :created, :updated);`
+	query := `INSERT INTO Tasks (title, due_date, status, creator_id, created, updated)
+	VALUES (:Title, :Due_date, :Status, :Creator_id, :Created, :Updated);`
 
 	// start transaction
 	tx := TaskRepository.SqlHandler.Conn.MustBegin()
-	res, err := tx.NamedExec(query, Task)
+	_, err := tx.NamedExec(query, Task)
 	if err != nil {
 		err = fmt.Errorf("failed to create Task: %w", err)
 		_ = tx.Rollback()
 
-		return 0, err
+		return err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		err = fmt.Errorf("failed to get last insert id: %w", err)
-		return 0, err
-	}
-
-	return id, nil
+	return nil
 }

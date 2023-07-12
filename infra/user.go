@@ -26,11 +26,11 @@ func (userRepository UserRepository) Create(user *model.User) error {
 	return nil
 }
 
-func (userRepository UserRepository) GetById(email string) (*model.User, error) {
-	query := `SELECT * FROM users WHERE email = ?;`
+func (userRepository UserRepository) GetById(id int) (*model.User, error) {
+	query := `SELECT * FROM users WHERE id = ?;`
 
 	var user model.User
-	if err := userRepository.SqlHandler.Conn.Get(&user, query, email); err != nil {
+	if err := userRepository.SqlHandler.Conn.Get(&user, query, id); err != nil {
 		return nil, err
 	}
 

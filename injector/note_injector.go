@@ -13,8 +13,9 @@ func InjectTaskHandler() handler.TaskHandler {
 
 func InjectTaskUsecase() usecase.TaskUsecase {
 	TaskRepository := InjectTaskRepository()
+	UserRepository := InjectUserRepository()
 
-	return usecase.NewTaskUsecase(TaskRepository)
+	return usecase.NewTaskUsecase(TaskRepository, UserRepository)
 }
 
 func InjectTaskRepository() repository.TaskRepository {

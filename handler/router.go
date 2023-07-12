@@ -5,8 +5,8 @@ import (
 )
 
 func InitTaskRouting(e *echo.Echo, taskHandler TaskHandler) {
-	e.GET("/api/tasks", taskHandler.Show())    //, middleware.IsAuthenticated)
-	e.POST("/api/tasks", taskHandler.Create()) //, middleware.IsAuthenticated)
+	e.GET("/api/tasks", taskHandler.Show()) //, middleware.IsAuthenticated)
+	e.POST("/api/tasks", taskHandler.Create())
 	// e.DELETE("/api/tasks/:taskID", taskHandler.Delete()) //, middleware.IsAuthenticated)
 }
 
