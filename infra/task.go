@@ -102,10 +102,6 @@ func (TaskRepository *TaskRepository) Delete(id int, email string) error {
 	return tx.Commit()
 }
 
-func (TaskRepository *TaskRepository) Update(Task *model.Task) error {
-	return nil
-}
-
 func (TaskRepository *TaskRepository) Create(Task *model.Task, Id int) error {
 	now := time.Now()
 
@@ -113,13 +109,67 @@ func (TaskRepository *TaskRepository) Create(Task *model.Task, Id int) error {
 	Task.Updated = now
 
 	query := `INSERT INTO Tasks (title, due_date, status, creator_id, created, updated)
-	VALUES (:Title, :Due_date, :Status, :Creator_id, :Created, :Updated);`
+	VALUES (:title, :due_date, :status, :creator_id, :created, :updated);`
 
 	// start transaction
 	tx := TaskRepository.SqlHandler.Conn.MustBegin()
 	_, err := tx.NamedExec(query, Task)
 	if err != nil {
 		err = fmt.Errorf("failed to create Task: %w", err)
+		_ = tx.Rollback()
+
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (TaskRepository *TaskRepository) UpdateTaskByLead(Task *model.Task, Id int) error {
+	now := time.Now()
+	Task.Updated = now
+	Task.ID = Id
+
+	query := `UPDATE tasks
+	SET title = :title,
+		due_date = :due_date,
+		updated = :updated,
+		status = :status,
+	WHERE id = id;`
+
+	tx := TaskRepository.SqlHandler.Conn.MustBegin()
+
+	_, err := tx.NamedExec(query, Task)
+	if err != nil {
+		err = fmt.Errorf("failed to update tasks: %w", err)
+		_ = tx.Rollback()
+
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (TaskRepository *TaskRepository) UpdateStatusBySubOrdinate(Status string, Id int) error {
+
+	query := `UPDATE tasks
+	SET status = ?,
+	WHERE id = ?;
+	`
+	tx := TaskRepository.SqlHandler.Conn.MustBegin()
+
+	_, err := tx.Exec(query, Status, Id)
+	if err != nil {
+		err = fmt.Errorf("failed to update tasks: %w", err)
 		_ = tx.Rollback()
 
 		return err

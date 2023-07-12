@@ -86,8 +86,6 @@ func (handler *TaskHandler) Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, out)
 		}
 
-		// check if user is lead from db
-
 		err := handler.TaskUsecase.Create(&createTaskReq.Task)
 		if err != nil {
 			c.Logger().Error(err.Error())
@@ -117,5 +115,31 @@ func (handler *TaskHandler) Delete() echo.HandlerFunc {
 			"message": "Task deleted successfully",
 			"id":      id,
 		})
+	}
+}
+
+func (handler *TaskHandler) Update() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id, _ := strconv.Atoi(c.Param("taskId"))
+		var (
+			updReq CreateTaskRequest
+			out    Output
+		)
+		if err := c.Bind(&updReq); err != nil {
+			c.Logger().Error(err.Error())
+
+			out.Message = "invalid request"
+			return c.JSON(http.StatusBadRequest, out)
+		}
+		err := handler.TaskUsecase.Update(&updReq.Task, id)
+		if err != nil {
+			c.Logger().Error(err.Error())
+
+			out.Message = err.Error()
+			return c.JSON(http.StatusUnprocessableEntity, out)
+		}
+
+		out.Message = "successfully created"
+		return c.JSON(http.StatusOK, out)
 	}
 }

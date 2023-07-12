@@ -10,7 +10,7 @@ import (
 type TaskUsecase interface {
 	GetAllTasksByRole(role string, id int) (Tasks *[]model.Task, err error)
 	Create(Task *model.Task) error
-	Update(Task *model.Task) error
+	Update(Task *model.Task, Id int) error
 	Delete(id int, email string) error
 }
 
@@ -56,12 +56,27 @@ func (usecase *taskUsecase) Create(Task *model.Task) error {
 	return usecase.TaskRepo.Create(Task, Task.Creator_id)
 }
 
-func (usecase *taskUsecase) Update(Task *model.Task) error {
-	err := usecase.TaskRepo.Update(Task)
+func (usecase *taskUsecase) Update(Task *model.Task, Id int) error {
+	// check if role is leader or subord.
+	user, err := usecase.UserRepo.GetById(Task.Creator_id)
 	if err != nil {
 		return err
 	}
-	return nil
+	if user.Role == utils.LEAD_ROLE {
+		err := usecase.TaskRepo.UpdateTaskByLead(Task, Id)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if user.Role == utils.SUBORDINATE_ROLE {
+		newStatus := Task.Status
+		err := usecase.TaskRepo.UpdateStatusBySubOrdinate(newStatus, Id)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	return errors.New("No such user found")
 }
 
 func (usecase *taskUsecase) Delete(id int, email string) error {

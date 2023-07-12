@@ -6,6 +6,7 @@ type TaskRepository interface {
 	GetAllCreatedTasks(id int) (*[]model.Task, error)
 	GetAllAssignedTasks(id int) (*[]model.Task, error)
 	Create(Task *model.Task, Id int) error
-	Update(Task *model.Task) error
 	Delete(id int, email string) error
+	UpdateTaskByLead(Task *model.Task, Id int) error
+	UpdateStatusBySubOrdinate(Status string, Id int) error
 }
