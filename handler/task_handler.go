@@ -3,11 +3,13 @@ package handler
 import (
 	"ahsmha/Tasks/domain/model"
 	"ahsmha/Tasks/usecase"
+	"ahsmha/Tasks/utils"
+	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 type TaskHandler struct {
@@ -37,13 +39,6 @@ func (handler *TaskHandler) Show() echo.HandlerFunc {
 		)
 		// validate the request
 		// also check if role and userId match
-		validate := validator.New()
-		if err := validate.Struct(treq); err != nil {
-			c.Logger().Error(err.Error())
-
-			out.Message = "Invalid request body"
-			return c.JSON(http.StatusBadRequest, out)
-		}
 
 		if err := c.Bind(&treq); err != nil {
 			c.Logger().Error(err.Error())
@@ -85,8 +80,13 @@ func (handler *TaskHandler) Create() echo.HandlerFunc {
 			out.Message = "request format is invalid"
 			return c.JSON(http.StatusBadRequest, out)
 		}
+		err := createTaskReq.validate(&c)
+		if err != nil {
+			out.Message = "request format is invalid"
+			return c.JSON(http.StatusBadRequest, out)
+		}
 
-		err := handler.TaskUsecase.Create(&createTaskReq.Task)
+		err = handler.TaskUsecase.Create(&createTaskReq.Task)
 		if err != nil {
 			c.Logger().Error(err.Error())
 
@@ -97,6 +97,19 @@ func (handler *TaskHandler) Create() echo.HandlerFunc {
 		out.Message = "successfully created"
 		return c.JSON(http.StatusOK, out)
 	}
+}
+
+func (req *CreateTaskRequest) validate(c *echo.Context) error {
+	if req.Task.Status != utils.STATUS_OVERDUE && req.Task.Status != utils.STATUS_PENDING {
+		return fmt.Errorf("status is not valid")
+	}
+	// regex for date and time format
+	if len(req.Task.Due_date) == 0 {
+		return fmt.Errorf("due_date cannot be empty")
+	} else if ok, _ := regexp.MatchString(utils.DATE_TIME_REGEX, req.Task.Due_date); !ok {
+		return fmt.Errorf("due_date time format is wrong")
+	}
+	return nil
 }
 
 func (handler *TaskHandler) Delete() echo.HandlerFunc {
@@ -132,7 +145,12 @@ func (handler *TaskHandler) Update() echo.HandlerFunc {
 			out.Message = "invalid request"
 			return c.JSON(http.StatusBadRequest, out)
 		}
-		err := handler.TaskUsecase.Update(&updReq.Task, id)
+		err := updReq.validate(&c)
+		if err != nil {
+			out.Message = err.Error()
+			return c.JSON(http.StatusBadRequest, out)
+		}
+		err = handler.TaskUsecase.Update(&updReq.Task, id)
 		if err != nil {
 			c.Logger().Error(err.Error())
 
@@ -140,7 +158,7 @@ func (handler *TaskHandler) Update() echo.HandlerFunc {
 			return c.JSON(http.StatusUnprocessableEntity, out)
 		}
 
-		out.Message = "successfully created"
+		out.Message = "successfully updated"
 		return c.JSON(http.StatusOK, out)
 	}
 }

@@ -17,8 +17,8 @@ func NewTaskRepository(sqlHandler SqlHandler) repository.TaskRepository {
 	}
 }
 
-func (TaskRepository *TaskRepository) GetAllCreatedTasks(id int) (*[]model.Task, error) {
-	var Tasks []model.Task
+func (TaskRepository *TaskRepository) GetAllCreatedTasks(id int) (*[]model.TaskExtended, error) {
+	var Tasks []model.TaskExtended
 	TaskQuery := `
 		SELECT id, title, due_date, status
 		FROM tasks
@@ -33,7 +33,7 @@ func (TaskRepository *TaskRepository) GetAllCreatedTasks(id int) (*[]model.Task,
 	defer rows.Close()
 
 	for rows.Next() {
-		var Task model.Task
+		var Task model.TaskExtended
 		err := rows.StructScan(&Task)
 		if err != nil {
 			err = fmt.Errorf("failed to scan Task: %w", err)
@@ -51,8 +51,8 @@ func (TaskRepository *TaskRepository) GetAllCreatedTasks(id int) (*[]model.Task,
 
 }
 
-func (TaskRepository *TaskRepository) GetAllAssignedTasks(id int) (*[]model.Task, error) {
-	var Tasks []model.Task
+func (TaskRepository *TaskRepository) GetAllAssignedTasks(id int) (*[]model.TaskExtended, error) {
+	var Tasks []model.TaskExtended
 	TaskQuery := `
 		SELECT t.id, t.title, t.due_date, t.status
 		FROM tasks t
@@ -69,7 +69,7 @@ func (TaskRepository *TaskRepository) GetAllAssignedTasks(id int) (*[]model.Task
 	defer rows.Close()
 
 	for rows.Next() {
-		var Task model.Task
+		var Task model.TaskExtended
 		err := rows.StructScan(&Task)
 		if err != nil {
 			err = fmt.Errorf("failed to scan Task: %w", err)
@@ -138,8 +138,8 @@ func (TaskRepository *TaskRepository) UpdateTaskByLead(Task *model.Task, Id int)
 	SET title = :title,
 		due_date = :due_date,
 		updated = :updated,
-		status = :status,
-	WHERE id = id;`
+		status = :status
+	WHERE id = :id;`
 
 	tx := TaskRepository.SqlHandler.Conn.MustBegin()
 
@@ -162,7 +162,7 @@ func (TaskRepository *TaskRepository) UpdateTaskByLead(Task *model.Task, Id int)
 func (TaskRepository *TaskRepository) UpdateStatusBySubOrdinate(Status string, Id int) error {
 
 	query := `UPDATE tasks
-	SET status = ?,
+	SET status = ?
 	WHERE id = ?;
 	`
 	tx := TaskRepository.SqlHandler.Conn.MustBegin()
@@ -181,4 +181,19 @@ func (TaskRepository *TaskRepository) UpdateStatusBySubOrdinate(Status string, I
 	}
 
 	return nil
+}
+
+func (TaskRepository *TaskRepository) GetById(Id int) (*model.TaskExtended, error) {
+	var task model.TaskExtended
+	TaskQuery := `
+		SELECT t.id, t.title, t.due_date, t.status, t.creator_id, tam.assignee_id
+		FROM tasks t
+		JOIN task_assignee_mapping tam on tam.task_id = t.id
+		WHERE t.id = ?;
+	`
+	if err := TaskRepository.SqlHandler.Conn.Get(&task, TaskQuery, Id); err != nil {
+		return nil, err
+	}
+
+	return &task, nil
 }

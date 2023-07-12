@@ -4,11 +4,13 @@ import (
 	"ahsmha/Tasks/domain/model"
 	"ahsmha/Tasks/domain/repository"
 	"ahsmha/Tasks/utils"
+	"database/sql"
 	"errors"
+	"fmt"
 )
 
 type TaskUsecase interface {
-	GetAllTasksByRole(role string, id int) (Tasks *[]model.Task, err error)
+	GetAllTasksByRole(role string, id int) (Tasks *[]model.TaskExtended, err error)
 	Create(Task *model.Task) error
 	Update(Task *model.Task, Id int) error
 	Delete(id int, email string) error
@@ -27,14 +29,14 @@ func NewTaskUsecase(TaskRepo repository.TaskRepository, UserRepo repository.User
 	}
 }
 
-func (usecase *taskUsecase) GetAllTasksByRole(role string, id int) (Tasks *[]model.Task, err error) {
-	if role == utils.LEAD_ROLE {
+func (usecase *taskUsecase) GetAllTasksByRole(role string, id int) (Tasks *[]model.TaskExtended, err error) {
+	if role == utils.SUBORDINATE_ROLE {
 		Tasks, err := usecase.TaskRepo.GetAllAssignedTasks(id)
 		if err != nil {
 			return nil, err
 		}
 		return Tasks, nil
-	} else if role == utils.SUBORDINATE_ROLE {
+	} else if role == utils.LEAD_ROLE {
 		Tasks, err := usecase.TaskRepo.GetAllCreatedTasks(id)
 		if err != nil {
 			return nil, err
@@ -62,13 +64,25 @@ func (usecase *taskUsecase) Update(Task *model.Task, Id int) error {
 	if err != nil {
 		return err
 	}
+	task, err := usecase.TaskRepo.GetById(Id)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
 	if user.Role == utils.LEAD_ROLE {
-		err := usecase.TaskRepo.UpdateTaskByLead(Task, Id)
+		if task.Creator_id != user.Id {
+			return fmt.Errorf("Failed because Task is not created by same user.")
+		}
+		err = usecase.TaskRepo.UpdateTaskByLead(Task, Id)
 		if err != nil {
 			return err
 		}
 		return nil
 	} else if user.Role == utils.SUBORDINATE_ROLE {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("failed becasue task is not assigned to anyone")
+		} else if task.Assignee_id != user.Id {
+			return fmt.Errorf("cannot update because task is not assigned to user")
+		}
 		newStatus := Task.Status
 		err := usecase.TaskRepo.UpdateStatusBySubOrdinate(newStatus, Id)
 		if err != nil {
