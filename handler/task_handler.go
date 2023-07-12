@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"ahsmha/Tasks/domain/model"
 	"ahsmha/Tasks/usecase"
 	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type TaskHandler struct {
@@ -20,8 +20,8 @@ func NewTaskHandler(TaskUsecase usecase.TaskUsecase) TaskHandler {
 }
 
 type TaskRequest struct {
-	Task model.Task `json:"Task,omitempty"`
-	Role string     `json:"Role"`
+	Role   string `json:"role"`
+	UserId int    `json:"user_id"`
 }
 
 type AllTasksOutput struct {
@@ -35,17 +35,27 @@ func (handler *TaskHandler) Show() echo.HandlerFunc {
 			out  AllTasksOutput
 		)
 		// validate the request
+		validate := validator.New()
+		if err := validate.Struct(treq); err != nil {
+			c.Logger().Error(err.Error())
+
+			out.Message = "Invalid request body"
+			return c.JSON(http.StatusBadRequest, out)
+		}
+
 		if err := c.Bind(&treq); err != nil {
 			c.Logger().Error(err.Error())
 
-			out.Message = "request format is invalid"
+			out.Message = "could not bind request"
 			return c.JSON(http.StatusBadRequest, out)
 		}
-		Tasks, err := handler.TaskUsecase.GetAllTasksByRole(treq.Role)
+
+		Tasks, err := handler.TaskUsecase.GetAllTasksByRole(treq.Role, treq.UserId)
 		if err != nil {
 			c.Logger().Error(err.Error())
 
-			return c.JSON(http.StatusNoContent, err)
+			out.Message = err.Error()
+			return c.JSON(http.StatusUnprocessableEntity, out)
 		}
 
 		return c.JSON(http.StatusOK, echo.Map{
@@ -73,14 +83,14 @@ func (handler *TaskHandler) Create() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, out)
 		}
 
-		id, err := handler.TaskUsecase.Create(&Task.Task)
-		if err != nil {
-			c.Logger().Error(err.Error())
+		// id, err := handler.TaskUsecase.Create(&Task.Task)
+		// if err != nil {
+		// 	c.Logger().Error(err.Error())
 
-			return c.JSON(http.StatusInternalServerError, err)
-		}
+		// 	return c.JSON(http.StatusInternalServerError, err)
+		// }
 
-		out.TaskId = id
+		// out.TaskId = id
 
 		return c.JSON(http.StatusOK, out)
 	}

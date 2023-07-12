@@ -3,10 +3,12 @@ package usecase
 import (
 	"ahsmha/Tasks/domain/model"
 	"ahsmha/Tasks/domain/repository"
+	"ahsmha/Tasks/utils"
+	"errors"
 )
 
 type TaskUsecase interface {
-	GetAllTasksByRole(email string) (Tasks *[]model.Task, err error)
+	GetAllTasksByRole(role string, id int) (Tasks *[]model.Task, err error)
 	Create(Task *model.Task) (int64, error)
 	Update(Task *model.Task) error
 	Delete(id int, email string) error
@@ -23,14 +25,23 @@ func NewTaskUsecase(TaskRepo repository.TaskRepository) TaskUsecase {
 	}
 }
 
-func (usecase *taskUsecase) GetAllTasksByRole(role string) (Tasks *[]model.Task, err error) {
-	Tasks, err = usecase.TaskRepo.GetAllTasksByRole(role)
-	if err != nil {
-		return nil, err
+func (usecase *taskUsecase) GetAllTasksByRole(role string, id int) (Tasks *[]model.Task, err error) {
+	if role == utils.LEAD_ROLE {
+		Tasks, err := usecase.TaskRepo.GetAllAssignedTasks(id)
+		if err != nil {
+			return nil, err
+		}
+		return Tasks, nil
+	} else if role == utils.SUBORDINATE_ROLE {
+		Tasks, err := usecase.TaskRepo.GetAllCreatedTasks(id)
+		if err != nil {
+			return nil, err
+		}
+		return Tasks, nil
 	}
-
-	return Tasks, err
+	return nil, errors.New("undefined role")
 }
+
 func (usecase *taskUsecase) Create(Task *model.Task) (int64, error) {
 	id, err := usecase.TaskRepo.Create(Task)
 	if err != nil {

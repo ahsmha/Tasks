@@ -17,16 +17,15 @@ func NewTaskRepository(sqlHandler SqlHandler) repository.TaskRepository {
 	}
 }
 
-func (TaskRepository *TaskRepository) GetAllTasksByRole(role string) (*[]model.Task, error) {
+func (TaskRepository *TaskRepository) GetAllCreatedTasks(id int) (*[]model.Task, error) {
 	var Tasks []model.Task
 	TaskQuery := `
-		SELECT n.id,n.title,n.status
-		FROM Tasks t
-		JOIN users u ON n.email = u.email
-		WHERE n.email = ?;
+		SELECT id, title, due_date, status
+		FROM tasks
+		WHERE creator_id = ?;
 	`
 
-	rows, err := TaskRepository.SqlHandler.Conn.Queryx(TaskQuery, role)
+	rows, err := TaskRepository.SqlHandler.Conn.Queryx(TaskQuery, id)
 	if err != nil {
 		err = fmt.Errorf("failed to select Tasks: %w", err)
 		return nil, err
@@ -49,6 +48,43 @@ func (TaskRepository *TaskRepository) GetAllTasksByRole(role string) (*[]model.T
 	}
 
 	return &Tasks, nil
+
+}
+
+func (TaskRepository *TaskRepository) GetAllAssignedTasks(id int) (*[]model.Task, error) {
+	var Tasks []model.Task
+	TaskQuery := `
+		SELECT t.id, t.title, t.due_date, t.status
+		FROM tasks t
+		JOIN task_assignee_mapping tam
+		ON t.id = tam.task_id
+		WHERE tam.assignee_id = ?;
+	`
+
+	rows, err := TaskRepository.SqlHandler.Conn.Queryx(TaskQuery, id)
+	if err != nil {
+		err = fmt.Errorf("failed to select Tasks: %w", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var Task model.Task
+		err := rows.StructScan(&Task)
+		if err != nil {
+			err = fmt.Errorf("failed to scan Task: %w", err)
+			return nil, err
+		}
+		Tasks = append(Tasks, Task)
+	}
+
+	if err := rows.Err(); err != nil {
+		err = fmt.Errorf("failed to iterate over Tasks: %w", err)
+		return nil, err
+	}
+
+	return &Tasks, nil
+
 }
 
 func (TaskRepository *TaskRepository) Delete(id int, email string) error {
