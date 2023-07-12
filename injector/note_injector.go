@@ -1,24 +1,24 @@
 package injector
 
 import (
-	"ahsmha/notes/domain/repository"
-	"ahsmha/notes/handler"
-	"ahsmha/notes/infra"
-	"ahsmha/notes/usecase"
+	"ahsmha/Tasks/domain/repository"
+	"ahsmha/Tasks/handler"
+	"ahsmha/Tasks/infra"
+	"ahsmha/Tasks/usecase"
 )
 
-func InjectNoteHandler() handler.NoteHandler {
-	return handler.NewNoteHandler(InjectNoteUsecase())
+func InjectTaskHandler() handler.TaskHandler {
+	return handler.NewTaskHandler(InjectTaskUsecase())
 }
 
-func InjectNoteUsecase() usecase.NoteUsecase {
-	noteRepository := InjectNoteRepository()
+func InjectTaskUsecase() usecase.TaskUsecase {
+	TaskRepository := InjectTaskRepository()
 
-	return usecase.NewNoteUsecase(noteRepository)
+	return usecase.NewTaskUsecase(TaskRepository)
 }
 
-func InjectNoteRepository() repository.NoteRepository {
+func InjectTaskRepository() repository.TaskRepository {
 	sqlHandler := InjectDB()
 
-	return infra.NewNoteRepository(sqlHandler)
+	return infra.NewTaskRepository(sqlHandler)
 }

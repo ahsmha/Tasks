@@ -1,10 +1,10 @@
 package repository
 
-import "ahsmha/notes/domain/model"
+import "ahsmha/Tasks/domain/model"
 
-type NoteRepository interface {
-	GetAllNotesByEmail(email string) (*[]model.Note, error)
-	Create(note *model.Note) (int64, error)
-	Update(note *model.Note) error
+type TaskRepository interface {
+	GetAllTasksByRole(role string) (*[]model.Task, error)
+	Create(Task *model.Task) (int64, error)
+	Update(Task *model.Task) error
 	Delete(id int, email string) error
 }

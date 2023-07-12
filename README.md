@@ -1,9 +1,5 @@
-# Notes Backend
-Backend of a note application
+# Tasks Backend
+Backend of a Tasks application
 
 ## Features
 - Basic CRUD functionality
-- Authentication
-
-## UML
-<img src="./uml.png">

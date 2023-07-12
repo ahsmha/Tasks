@@ -1,12 +1,12 @@
 package usecase
 
 import (
-	"ahsmha/notes/domain/model"
-	"ahsmha/notes/domain/repository"
+	"ahsmha/Tasks/domain/model"
+	"ahsmha/Tasks/domain/repository"
 )
 
 type UserUsecase interface {
-	GetByEmail(email string) (user *model.User, err error)
+	GetById(email string) (user *model.User, err error)
 	Create(user *model.User) error
 }
 
@@ -21,8 +21,8 @@ func NewUserUsecase(userRepo repository.UserRepository) UserUsecase {
 	}
 }
 
-func (usecase *userUsecase) GetByEmail(email string) (user *model.User, err error) {
-	user, err = usecase.userRepo.GetByEmail(email)
+func (usecase *userUsecase) GetById(email string) (user *model.User, err error) {
+	user, err = usecase.userRepo.GetById(email)
 	if err != nil {
 		return nil, err
 	}

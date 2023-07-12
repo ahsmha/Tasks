@@ -1,8 +1,8 @@
 package repository
 
-import "ahsmha/notes/domain/model"
+import "ahsmha/Tasks/domain/model"
 
 type UserRepository interface {
-	GetByEmail(email string) (*model.User, error)
+	GetById(id string) (*model.User, error)
 	Create(user *model.User) error
 }

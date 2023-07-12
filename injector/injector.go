@@ -1,7 +1,7 @@
 package injector
 
 import (
-	"ahsmha/notes/infra"
+	"ahsmha/Tasks/infra"
 )
 
 func InjectDB() infra.SqlHandler {

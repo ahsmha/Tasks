@@ -1,16 +1,15 @@
 package injector
 
 import (
-	"ahsmha/notes/domain/repository"
-	"ahsmha/notes/handler"
-	"ahsmha/notes/infra"
-	"ahsmha/notes/usecase"
+	"ahsmha/Tasks/domain/repository"
+	"ahsmha/Tasks/infra"
+	"ahsmha/Tasks/usecase"
 )
 
 // inject auth handler
-func InjectAuthHandler() handler.AuthHandler {
-	return handler.NewAuthHandler(InjectUserUsecase())
-}
+// func InjectAuthHandler() handler.AuthHandler {
+// 	return handler.NewAuthHandler(InjectUserUsecase())
+// }
 
 func InjectUserUsecase() usecase.UserUsecase {
 	userRepository := InjectUserRepository()

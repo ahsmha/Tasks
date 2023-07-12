@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"ahsmha/notes/handler"
-	"ahsmha/notes/injector"
+	"ahsmha/Tasks/handler"
+	"ahsmha/Tasks/injector"
 
 	"github.com/joho/godotenv"
 
@@ -52,11 +52,11 @@ func createMux() *echo.Echo {
 }
 
 func setupRouting(e *echo.Echo) {
-	noteHandler := injector.InjectNoteHandler()
-	handler.InitNoteRouting(e, noteHandler)
+	noteHandler := injector.InjectTaskHandler()
+	handler.InitTaskRouting(e, noteHandler)
 
-	authHandler := injector.InjectAuthHandler()
-	handler.InitAuthRouting(e, authHandler)
+	// authHandler := injector.InjectAuthHandler()
+	// handler.InitAuthRouting(e, authHandler)
 }
 
 func bodyDumpHandler(c echo.Context, reqBody, resBody []byte) {
